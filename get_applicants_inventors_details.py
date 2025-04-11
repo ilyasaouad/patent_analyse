@@ -38,11 +38,11 @@ from scipy.stats import mode  # used to get the most common value/ in inventors 
 from connect_database import create_sqlalchemy_session
 
 from ploting_applicants_inventors_details import (
-    plot_appl_inv_ratios,
-    plot_appl_inv_counts,
-    plot_appl_inv_side_by_side,
-    plot_appl_inv_indiv_non_indiv,
-    plot_individ_appl_inv_ratios,
+    plot_appl_invt_ratios,
+    plot_appl_invt_counts,
+    plot_appl_invt_side_by_side,
+    plot_appl_invt_indiv_non_indiv,
+    plot_individ_appl_invt_ratios,
 )
 import config
 
@@ -536,7 +536,7 @@ def calculate_applicants_inventors_indiv_non_indiv(
         df (pd.DataFrame): DataFrame with applicant/inventor data (e.g., from get_applicant_inventor)
 
     Returns:
-        tuple: (df_inv_indiv_counts, df_inv_non_indiv_counts, df_app_non_indiv_counts, df_app_indiv_counts)
+        tuple: (df_invt_indiv_counts, df_invt_non_indiv_counts, df_appl_non_indiv_counts, df_appl_indiv_counts)
         Each DataFrame has columns: docdb_family_id, person_ctry_code, {type}_count
     """
 
@@ -637,43 +637,43 @@ def calculate_applicants_inventors_indiv_non_indiv(
 
     # Step 6: Categorize Inventors and Applicants
     # Individual Inventors
-    inv_indiv_data = filtered_inventor_data[
+    invt_indiv_data = filtered_inventor_data[
         filtered_inventor_data["psn_sector_predicted"] == "INDIVIDUAL"
     ].copy()
-    df_inv_indiv_counts = (
-        inv_indiv_data.groupby(["docdb_family_id", "person_ctry_code"])["person_id"]
+    df_invt_indiv_counts = (
+        invt_indiv_data.groupby(["docdb_family_id", "person_ctry_code"])["person_id"]
         .nunique()
-        .reset_index(name="inv_indiv_count")
+        .reset_index(name="invt_indiv_count")
     )
 
     # Non-Individual Inventors
-    inv_non_indiv_data = filtered_inventor_data[
+    invt_non_indiv_data = filtered_inventor_data[
         filtered_inventor_data["psn_sector_predicted"] == "NON_INDIVIDUAL"
     ].copy()
-    df_inv_non_indiv_counts = (
-        inv_non_indiv_data.groupby(["docdb_family_id", "person_ctry_code"])["person_id"]
+    df_invt_non_indiv_counts = (
+        invt_non_indiv_data.groupby(["docdb_family_id", "person_ctry_code"])["person_id"]
         .nunique()
-        .reset_index(name="inv_non_indiv_count")
+        .reset_index(name="invt_non_indiv_count")
     )
 
     # Non-Individual Applicants
-    app_non_indiv_data = filtered_applicant_data[
+    appl_non_indiv_data = filtered_applicant_data[
         filtered_applicant_data["psn_sector_predicted"] == "NON_INDIVIDUAL"
     ].copy()
-    df_app_non_indiv_counts = (
-        app_non_indiv_data.groupby(["docdb_family_id", "person_ctry_code"])["person_id"]
+    df_appl_non_indiv_counts = (
+        appl_non_indiv_data.groupby(["docdb_family_id", "person_ctry_code"])["person_id"]
         .nunique()
-        .reset_index(name="app_non_indiv_count")
+        .reset_index(name="appl_non_indiv_count")
     )
 
     # Individual Applicants
-    app_indiv_data = filtered_applicant_data[
+    appl_indiv_data = filtered_applicant_data[
         filtered_applicant_data["psn_sector_predicted"] == "INDIVIDUAL"
     ].copy()
-    df_app_indiv_counts = (
-        app_indiv_data.groupby(["docdb_family_id", "person_ctry_code"])["person_id"]
+    df_appl_indiv_counts = (
+        appl_indiv_data.groupby(["docdb_family_id", "person_ctry_code"])["person_id"]
         .nunique()
-        .reset_index(name="app_indiv_count")
+        .reset_index(name="appl_indiv_count")
     )
 
     # Step 7: Post-processing
@@ -685,22 +685,22 @@ def calculate_applicants_inventors_indiv_non_indiv(
             & (df["person_ctry_code"] != " ")
         ]
 
-    df_inv_indiv_counts = filter_invalid_countries(df_inv_indiv_counts)
-    df_inv_non_indiv_counts = filter_invalid_countries(df_inv_non_indiv_counts)
-    df_app_non_indiv_counts = filter_invalid_countries(df_app_non_indiv_counts)
-    df_app_indiv_counts = filter_invalid_countries(df_app_indiv_counts)
+    df_invt_indiv_counts = filter_invalid_countries(df_invt_indiv_counts)
+    df_invt_non_indiv_counts = filter_invalid_countries(df_invt_non_indiv_counts)
+    df_appl_non_indiv_counts = filter_invalid_countries(df_appl_non_indiv_counts)
+    df_appl_indiv_counts = filter_invalid_countries(df_appl_indiv_counts)
 
     # Return results
     return (
-        df_inv_indiv_counts,
-        df_inv_non_indiv_counts,
-        df_app_non_indiv_counts,
-        df_app_indiv_counts,
+        df_invt_indiv_counts,
+        df_invt_non_indiv_counts,
+        df_appl_non_indiv_counts,
+        df_appl_indiv_counts,
     )
 
 
 def individ_applicant(
-    df_app_indiv_counts: pd.DataFrame, df_app_non_indiv_counts: pd.DataFrame
+    df_appl_indiv_counts: pd.DataFrame, df_appl_non_indiv_counts: pd.DataFrame
 ) -> (pd.DataFrame, int, float):
     """
     Calculate the ratio of individual applicants from each country to the total number of applicants per docdb_family_id.
@@ -709,8 +709,8 @@ def individ_applicant(
     - Ratio of families with only individual applicants to the total number of families.
 
     Args:
-        df_app_indiv_counts (pd.DataFrame): DataFrame with columns: docdb_family_id, person_ctry_code, app_indiv_count
-        df_app_non_indiv_counts (pd.DataFrame): DataFrame with columns: docdb_family_id, person_ctry_code, app_non_indiv_count
+        df_appl_indiv_counts (pd.DataFrame): DataFrame with columns: docdb_family_id, person_ctry_code, appl_indiv_count
+        df_appl_non_indiv_counts (pd.DataFrame): DataFrame with columns: docdb_family_id, person_ctry_code, appl_non_indiv_count
 
     Returns:
         (pd.DataFrame, int, float): A tuple containing:
@@ -720,31 +720,31 @@ def individ_applicant(
     """
     # Merge the DataFrames on docdb_family_id and person_ctry_code with an outer join
     merged_df = pd.merge(
-        df_app_indiv_counts,
-        df_app_non_indiv_counts,
+        df_appl_indiv_counts,
+        df_appl_non_indiv_counts,
         on=["docdb_family_id", "person_ctry_code"],
         how="outer",
     )
 
     # Fill NaN values with 0 for counts
-    merged_df["app_indiv_count"] = merged_df["app_indiv_count"].fillna(0)
-    merged_df["app_non_indiv_count"] = merged_df["app_non_indiv_count"].fillna(0)
+    merged_df["appl_indiv_count"] = merged_df["appl_indiv_count"].fillna(0)
+    merged_df["appl_non_indiv_count"] = merged_df["appl_non_indiv_count"].fillna(0)
 
     # Calculate total individual and non-individual applicants per family
     family_totals = (
         merged_df.groupby("docdb_family_id")
-        .agg({"app_indiv_count": "sum", "app_non_indiv_count": "sum"})
+        .agg({"appl_indiv_count": "sum", "appl_non_indiv_count": "sum"})
         .reset_index()
     )
 
     # Calculate dataset-wide statistics
     # Number of families with at least one individual applicant
-    num_families_with_indiv = (family_totals["app_indiv_count"] > 0).sum()
+    num_families_with_indiv = (family_totals["appl_indiv_count"] > 0).sum()
 
     # Number of families with only individual applicants (no non-individual applicants)
     num_families_only_indiv = (
-        (family_totals["app_indiv_count"] > 0)
-        & (family_totals["app_non_indiv_count"] == 0)
+        (family_totals["appl_indiv_count"] > 0)
+        & (family_totals["appl_non_indiv_count"] == 0)
     ).sum()
 
     # Total number of unique families
@@ -757,7 +757,7 @@ def individ_applicant(
 
     # Calculate total applicants per family
     family_totals["total_applicants"] = (
-        family_totals["app_indiv_count"] + family_totals["app_non_indiv_count"]
+        family_totals["appl_indiv_count"] + family_totals["appl_non_indiv_count"]
     )
 
     # Merge total applicants back to the main DataFrame
@@ -768,10 +768,10 @@ def individ_applicant(
         how="left",
     )
 
-    # Calculate the per-country ratio: app_indiv_count / total_applicants
+    # Calculate the per-country ratio: appl_indiv_count / total_applicants
     merged_df["indiv_applicant_ratio"] = np.where(
         merged_df["total_applicants"] > 0,
-        merged_df["app_indiv_count"] / merged_df["total_applicants"],
+        merged_df["appl_indiv_count"] / merged_df["total_applicants"],
         np.nan,  # Handle division by zero
     )
 
@@ -896,10 +896,10 @@ def get_applicants_inventors_data(country_code: str, start_year: int, end_year: 
         "df_applicant_counts",
         "df_inventor_counts",
         "df_combined_counts",
-        "df_inv_indiv_counts",
-        "df_inv_non_indiv_counts",
-        "df_app_non_indiv_counts",
-        "df_app_indiv_counts",
+        "df_invt_indiv_counts",
+        "df_invt_non_indiv_counts",
+        "df_appl_non_indiv_counts",
+        "df_appl_indiv_counts",
         "df_indiv_applicant_ratio",
         "num_families_with_indiv",
         "ratio_only_indiv",
@@ -940,15 +940,15 @@ def get_applicants_inventors_data(country_code: str, start_year: int, end_year: 
 
     # Calculate individual/non-individual counts
     (
-        df_inv_indiv_counts,
-        df_inv_non_indiv_counts,
-        df_app_non_indiv_counts,
-        df_app_indiv_counts,
+        df_invt_indiv_counts,
+        df_invt_non_indiv_counts,
+        df_appl_non_indiv_counts,
+        df_appl_indiv_counts,
     ) = calculate_applicants_inventors_indiv_non_indiv(df_appl_invt)
 
-    # Get ratio of individ applicant on no-individ applicant.
+    # Get ratio of individual applicant on non-individual applicant.
     (df_indiv_applicant_ratio, num_families_with_indiv, ratio_only_indiv) = (
-        individ_applicant(df_app_indiv_counts, df_app_non_indiv_counts)
+        individ_applicant(df_appl_indiv_counts, df_appl_non_indiv_counts)
     )
 
     # Get female  inventors ration
@@ -957,7 +957,7 @@ def get_applicants_inventors_data(country_code: str, start_year: int, end_year: 
     # ------------------- Ploting ---------------------
 
     # Plot ratios
-    plot_appl_inv_ratios(
+    plot_appl_invt_ratios(
         df_applicant_ratios,
         df_inventor_ratios,
         df_combined_ratios,
@@ -966,26 +966,26 @@ def get_applicants_inventors_data(country_code: str, start_year: int, end_year: 
     )
 
     # Plot counts
-    plot_appl_inv_counts(
+    plot_appl_invt_counts(
         df_applicant_counts,
         df_inventor_counts,
         df_combined_counts,
         sort_by_country=country_code,
     )
 
-    plot_appl_inv_side_by_side(
+    plot_appl_invt_side_by_side(
         df_applicant_counts, df_inventor_counts, sort_by_country=country_code
     )
 
-    plot_appl_inv_indiv_non_indiv(
-        df_inv_indiv_counts,
-        df_inv_non_indiv_counts,
-        df_app_non_indiv_counts,
-        df_app_indiv_counts,
+    plot_appl_invt_indiv_non_indiv(
+        df_invt_indiv_counts,
+        df_invt_non_indiv_counts,
+        df_appl_non_indiv_counts,
+        df_appl_indiv_counts,
         sort_by_country=country_code,
     )
 
-    plot_individ_appl_inv_ratios(
+    plot_individ_appl_invt_ratios(
         df_applicant_ratios,
         df_inventor_ratios,
         df_combined_ratios,
@@ -1004,10 +1004,10 @@ def get_applicants_inventors_data(country_code: str, start_year: int, end_year: 
         df_applicant_counts,
         df_inventor_counts,
         df_combined_counts,
-        df_inv_indiv_counts,
-        df_inv_non_indiv_counts,
-        df_app_non_indiv_counts,
-        df_app_indiv_counts,
+        df_invt_indiv_counts,
+        df_invt_non_indiv_counts,
+        df_appl_non_indiv_counts,
+        df_appl_indiv_counts,
         df_indiv_applicant_ratio,
         num_families_with_indiv,
         ratio_only_indiv,

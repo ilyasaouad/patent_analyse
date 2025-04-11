@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 ############### USINING PLOtly graph for intercation
 import plotly.graph_objects as go
-def plot_appl_inv_ratios_interactive(
+def plot_appl_invt_ratios_interactive(
     df_applicant_ratios: pd.DataFrame,
     df_inventor_ratios: pd.DataFrame,
     df_combined_ratios: pd.DataFrame,
@@ -123,7 +123,7 @@ def plot_appl_inv_ratios_interactive(
         # Optional: Save as HTML for standalone use
         filename = (
             plot_output_dir
-            / f"{ratio_type}_ratio_stacked_bar_plot_sorted_by_{sort_by_country}.html"
+            / f"{ratio_type}_ratios.html"
         )
         fig.write_html(filename)
         logger.info(f"Saved interactive plot as {filename}")
@@ -133,7 +133,7 @@ def plot_appl_inv_ratios_interactive(
 
 ############ END PLOYTLY
 
-def plot_appl_inv_ratios(
+def plot_appl_invt_ratios(
     df_applicant_ratios: pd.DataFrame,
     df_inventor_ratios: pd.DataFrame,
     df_combined_ratios: pd.DataFrame,
@@ -244,14 +244,14 @@ def plot_appl_inv_ratios(
         # Save plot
         filename = (
             plot_output_dir
-            / f"{ratio_type}_ratio_stacked_bar_plot_sorted_by_{sort_by_country}.png"
+            / f"{ratio_type}_ratios.png"
         )
         plt.savefig(filename, format="png", dpi=dpi, bbox_inches="tight")
         logger.info(f"Saved plot as {filename}")
         plt.close()
 
 
-def plot_appl_inv_counts(
+def plot_appl_invt_counts(
     df_applicant_counts: pd.DataFrame,
     df_inventor_counts: pd.DataFrame,
     df_combined_counts: pd.DataFrame,
@@ -402,15 +402,14 @@ def plot_appl_inv_counts(
 
         # Save plot
         filename = (
-            plot_output_dir
-            / f"{count_type}_count_stacked_bar_plot_sorted_by_{sort_by_country}.png"
+            plot_output_dir / f"{count_type}_counts.png"
         )
         plt.savefig(filename, format="png", dpi=dpi, bbox_inches="tight")
         logger.info(f"Saved plot as {filename}")
         plt.close()
 
 
-def plot_appl_inv_side_by_side(
+def plot_appl_invt_side_by_side(
     df_applicant_counts: pd.DataFrame,
     df_inventor_counts: pd.DataFrame,
     sort_by_country: str = "NO",
@@ -593,19 +592,18 @@ def plot_appl_inv_side_by_side(
 
     # Save plot
     filename = (
-        plot_output_dir
-        / f"inventor_applicant_side_by_side_bar_plot_sorted_by_{sort_by_country}.png"
+        plot_output_dir / f"inventor_counts_side_by_side_applicant_counts.png"
     )
     plt.savefig(filename, format="png", dpi=dpi, bbox_inches="tight")
     logger.info(f"Saved plot as {filename}")
     plt.close()
 
 
-def plot_appl_inv_indiv_non_indiv(
-    df_inv_indiv_counts: pd.DataFrame,
-    df_inv_non_indiv_counts: pd.DataFrame,
-    df_app_non_indiv_counts: pd.DataFrame,
-    df_app_indiv_counts: pd.DataFrame,
+def plot_appl_invt_indiv_non_indiv(
+    df_invt_indiv_counts: pd.DataFrame,
+    df_invt_non_indiv_counts: pd.DataFrame,
+    df_appl_non_indiv_counts: pd.DataFrame,
+    df_appl_indiv_counts: pd.DataFrame,
     sort_by_country: str = "NO",
     output_dir: Path = None,
     figsize: tuple = (12, 8),
@@ -615,10 +613,10 @@ def plot_appl_inv_indiv_non_indiv(
     Plot positive and negative bar charts for individual/non-individual inventors and applicants per country for each docdb_family_id.
 
     Parameters:
-        df_inv_indiv_counts (pd.DataFrame): DataFrame with individual inventor counts (columns: docdb_family_id, person_ctry_code, inv_indiv_count)
-        df_inv_non_indiv_counts (pd.DataFrame): DataFrame with non-individual inventor counts (columns: docdb_family_id, person_ctry_code, inv_non_indiv_count)
-        df_app_non_indiv_counts (pd.DataFrame): DataFrame with non-individual applicant counts (columns: docdb_family_id, person_ctry_code, app_non_indiv_count)
-        df_app_indiv_counts (pd.DataFrame): DataFrame with individual applicant counts (columns: docdb_family_id, person_ctry_code, app_indiv_count)
+        df_invt_indiv_counts (pd.DataFrame): DataFrame with individual inventor counts (columns: docdb_family_id, person_ctry_code, invt_indiv_count)
+        df_invt_non_indiv_counts (pd.DataFrame): DataFrame with non-individual inventor counts (columns: docdb_family_id, person_ctry_code, invt_non_indiv_count)
+        df_appl_non_indiv_counts (pd.DataFrame): DataFrame with non-individual applicant counts (columns: docdb_family_id, person_ctry_code, appl_non_indiv_count)
+        df_appl_indiv_counts (pd.DataFrame): DataFrame with individual applicant counts (columns: docdb_family_id, person_ctry_code, appl_indiv_count)
         sort_by_country (str): Country code to sort the families by (default 'NO')
         output_dir (Path, optional): Directory to save the plots; defaults to config.output_dir/plots/applicants_inventors
         figsize (tuple): Figure size (width, height) in inches (default (12, 8))
@@ -637,10 +635,10 @@ def plot_appl_inv_indiv_non_indiv(
     if all(
         df.empty
         for df in [
-            df_inv_indiv_counts,
-            df_inv_non_indiv_counts,
-            df_app_non_indiv_counts,
-            df_app_indiv_counts,
+            df_invt_indiv_counts,
+            df_invt_non_indiv_counts,
+            df_appl_non_indiv_counts,
+            df_appl_indiv_counts,
         ]
     ):
         logger.warning("No data to plot for individual/non-individual counts")
@@ -649,10 +647,10 @@ def plot_appl_inv_indiv_non_indiv(
     # Define consistent color mapping
     all_countries = pd.concat(
         [
-            df_inv_indiv_counts["person_ctry_code"],
-            df_inv_non_indiv_counts["person_ctry_code"],
-            df_app_non_indiv_counts["person_ctry_code"],
-            df_app_indiv_counts["person_ctry_code"],
+            df_invt_indiv_counts["person_ctry_code"],
+            df_invt_non_indiv_counts["person_ctry_code"],
+            df_appl_non_indiv_counts["person_ctry_code"],
+            df_appl_indiv_counts["person_ctry_code"],
         ]
     ).unique()
     all_countries.sort()
@@ -664,63 +662,63 @@ def plot_appl_inv_indiv_non_indiv(
     color_map["Others"] = "gray"
 
     # Pivot tables
-    inv_indiv_pivot = df_inv_indiv_counts.pivot(
-        index="docdb_family_id", columns="person_ctry_code", values="inv_indiv_count"
+    invt_indiv_pivot = df_invt_indiv_counts.pivot(
+        index="docdb_family_id", columns="person_ctry_code", values="invt_indiv_count"
     ).fillna(0)
-    inv_non_indiv_pivot = df_inv_non_indiv_counts.pivot(
+    invt_non_indiv_pivot = df_invt_non_indiv_counts.pivot(
         index="docdb_family_id",
         columns="person_ctry_code",
-        values="inv_non_indiv_count",
+        values="invt_non_indiv_count",
     ).fillna(0)
-    app_non_indiv_pivot = df_app_non_indiv_counts.pivot(
+    appl_non_indiv_pivot = df_appl_non_indiv_counts.pivot(
         index="docdb_family_id",
         columns="person_ctry_code",
-        values="app_non_indiv_count",
+        values="appl_non_indiv_count",
     ).fillna(0)
-    app_indiv_pivot = df_app_indiv_counts.pivot(
-        index="docdb_family_id", columns="person_ctry_code", values="app_indiv_count"
+    appl_indiv_pivot = df_appl_indiv_counts.pivot(
+        index="docdb_family_id", columns="person_ctry_code", values="appl_indiv_count"
     ).fillna(0)
 
     # Ensure all pivots have the same index
     all_families = (
-        inv_indiv_pivot.index.union(inv_non_indiv_pivot.index)
-        .union(app_non_indiv_pivot.index)
-        .union(app_indiv_pivot.index)
+        invt_indiv_pivot.index.union(invt_non_indiv_pivot.index)
+        .union(appl_non_indiv_pivot.index)
+        .union(appl_indiv_pivot.index)
     )
-    inv_indiv_pivot = inv_indiv_pivot.reindex(all_families, fill_value=0)
-    inv_non_indiv_pivot = inv_non_indiv_pivot.reindex(all_families, fill_value=0)
-    app_non_indiv_pivot = app_non_indiv_pivot.reindex(all_families, fill_value=0)
-    app_indiv_pivot = app_indiv_pivot.reindex(all_families, fill_value=0)
+    invt_indiv_pivot = invt_indiv_pivot.reindex(all_families, fill_value=0)
+    invt_non_indiv_pivot = invt_non_indiv_pivot.reindex(all_families, fill_value=0)
+    appl_non_indiv_pivot = appl_non_indiv_pivot.reindex(all_families, fill_value=0)
+    appl_indiv_pivot = appl_indiv_pivot.reindex(all_families, fill_value=0)
 
     # Sort by total 'sort_by_country' counts across all categories
     total_sort_counts = (
-        inv_indiv_pivot.get(sort_by_country, pd.Series(0, index=inv_indiv_pivot.index))
-        + inv_non_indiv_pivot.get(
-            sort_by_country, pd.Series(0, index=inv_non_indiv_pivot.index)
+        invt_indiv_pivot.get(sort_by_country, pd.Series(0, index=invt_indiv_pivot.index))
+        + invt_non_indiv_pivot.get(
+            sort_by_country, pd.Series(0, index=invt_non_indiv_pivot.index)
         )
-        + app_non_indiv_pivot.get(
-            sort_by_country, pd.Series(0, index=app_non_indiv_pivot.index)
+        + appl_non_indiv_pivot.get(
+            sort_by_country, pd.Series(0, index=appl_non_indiv_pivot.index)
         )
-        + app_indiv_pivot.get(
-            sort_by_country, pd.Series(0, index=app_indiv_pivot.index)
+        + appl_indiv_pivot.get(
+            sort_by_country, pd.Series(0, index=appl_indiv_pivot.index)
         )
     )
     sort_order = total_sort_counts.sort_values(ascending=False).index
-    inv_indiv_pivot = inv_indiv_pivot.loc[sort_order]
-    inv_non_indiv_pivot = inv_non_indiv_pivot.loc[sort_order]
-    app_non_indiv_pivot = app_non_indiv_pivot.loc[sort_order]
-    app_indiv_pivot = app_indiv_pivot.loc[sort_order]
+    invt_indiv_pivot = invt_indiv_pivot.loc[sort_order]
+    invt_non_indiv_pivot = invt_non_indiv_pivot.loc[sort_order]
+    appl_non_indiv_pivot = appl_non_indiv_pivot.loc[sort_order]
+    appl_indiv_pivot = appl_indiv_pivot.loc[sort_order]
 
     # Reset index for plotting (1-based index)
-    inv_indiv_pivot = inv_indiv_pivot.reset_index(drop=True)
-    inv_non_indiv_pivot = inv_non_indiv_pivot.reset_index(drop=True)
-    app_non_indiv_pivot = app_non_indiv_pivot.reset_index(drop=True)
-    app_indiv_pivot = app_indiv_pivot.reset_index(drop=True)
-    inv_indiv_pivot.index += 1
-    inv_non_indiv_pivot.index += 1
-    app_non_indiv_pivot.index += 1
-    app_indiv_pivot.index += 1
-    index = np.arange(len(inv_indiv_pivot))
+    invt_indiv_pivot = invt_indiv_pivot.reset_index(drop=True)
+    invt_non_indiv_pivot = invt_non_indiv_pivot.reset_index(drop=True)
+    appl_non_indiv_pivot = appl_non_indiv_pivot.reset_index(drop=True)
+    appl_indiv_pivot = appl_indiv_pivot.reset_index(drop=True)
+    invt_indiv_pivot.index += 1
+    invt_non_indiv_pivot.index += 1
+    appl_non_indiv_pivot.index += 1
+    appl_indiv_pivot.index += 1
+    index = np.arange(len(invt_indiv_pivot))
 
     # Plotting
     fig, ax = plt.subplots(figsize=figsize)
@@ -730,15 +728,15 @@ def plot_appl_inv_indiv_non_indiv(
     labeled_countries = set()
 
     # Positive Left (Inventors - Individuals)
-    bottom_inv_indiv = np.zeros(len(index))
-    if sort_by_country in inv_indiv_pivot.columns:
-        country_sum = inv_indiv_pivot[sort_by_country].sum()
+    bottom_invt_indiv = np.zeros(len(index))
+    if sort_by_country in invt_indiv_pivot.columns:
+        country_sum = invt_indiv_pivot[sort_by_country].sum()
         if country_sum > 0:
             ax.bar(
                 index,
-                inv_indiv_pivot[sort_by_country],
+                invt_indiv_pivot[sort_by_country],
                 bar_width,
-                bottom=bottom_inv_indiv,
+                bottom=bottom_invt_indiv,
                 label=(
                     sort_by_country
                     if sort_by_country not in labeled_countries
@@ -746,31 +744,31 @@ def plot_appl_inv_indiv_non_indiv(
                 ),
                 color=color_map[sort_by_country],
             )
-            bottom_inv_indiv += inv_indiv_pivot[sort_by_country]
+            bottom_invt_indiv += invt_indiv_pivot[sort_by_country]
             labeled_countries.add(sort_by_country)
-    for country in inv_indiv_pivot.columns:
-        if country != sort_by_country and inv_indiv_pivot[country].sum() > 0:
+    for country in invt_indiv_pivot.columns:
+        if country != sort_by_country and invt_indiv_pivot[country].sum() > 0:
             ax.bar(
                 index,
-                inv_indiv_pivot[country],
+                invt_indiv_pivot[country],
                 bar_width,
-                bottom=bottom_inv_indiv,
+                bottom=bottom_invt_indiv,
                 label=country if country not in labeled_countries else None,
                 color=color_map[country],
             )
-            bottom_inv_indiv += inv_indiv_pivot[country]
+            bottom_invt_indiv += invt_indiv_pivot[country]
             labeled_countries.add(country)
 
     # Negative Left (Inventors - Non-Individuals)
-    bottom_inv_non_indiv = np.zeros(len(index))
-    if sort_by_country in inv_non_indiv_pivot.columns:
-        country_sum = inv_non_indiv_pivot[sort_by_country].sum()
+    bottom_invt_non_indiv = np.zeros(len(index))
+    if sort_by_country in invt_non_indiv_pivot.columns:
+        country_sum = invt_non_indiv_pivot[sort_by_country].sum()
         if country_sum > 0:
             ax.bar(
                 index,
-                -inv_non_indiv_pivot[sort_by_country],
+                -invt_non_indiv_pivot[sort_by_country],
                 bar_width,
-                bottom=bottom_inv_non_indiv,
+                bottom=bottom_invt_non_indiv,
                 label=(
                     sort_by_country
                     if sort_by_country not in labeled_countries
@@ -778,31 +776,31 @@ def plot_appl_inv_indiv_non_indiv(
                 ),
                 color=color_map[sort_by_country],
             )
-            bottom_inv_non_indiv -= inv_non_indiv_pivot[sort_by_country]
+            bottom_invt_non_indiv -= invt_non_indiv_pivot[sort_by_country]
             labeled_countries.add(sort_by_country)
-    for country in inv_non_indiv_pivot.columns:
-        if country != sort_by_country and inv_non_indiv_pivot[country].sum() > 0:
+    for country in invt_non_indiv_pivot.columns:
+        if country != sort_by_country and invt_non_indiv_pivot[country].sum() > 0:
             ax.bar(
                 index,
-                -inv_non_indiv_pivot[country],
+                -invt_non_indiv_pivot[country],
                 bar_width,
-                bottom=bottom_inv_non_indiv,
+                bottom=bottom_invt_non_indiv,
                 label=country if country not in labeled_countries else None,
                 color=color_map[country],
             )
-            bottom_inv_non_indiv -= inv_non_indiv_pivot[country]
+            bottom_invt_non_indiv -= invt_non_indiv_pivot[country]
             labeled_countries.add(country)
 
     # Positive Right (Applicants - Non-Individuals)
-    bottom_app_non_indiv = np.zeros(len(index))
-    if sort_by_country in app_non_indiv_pivot.columns:
-        country_sum = app_non_indiv_pivot[sort_by_country].sum()
+    bottom_appl_non_indiv = np.zeros(len(index))
+    if sort_by_country in appl_non_indiv_pivot.columns:
+        country_sum = appl_non_indiv_pivot[sort_by_country].sum()
         if country_sum > 0:
             ax.bar(
                 index + bar_width,
-                app_non_indiv_pivot[sort_by_country],
+                appl_non_indiv_pivot[sort_by_country],
                 bar_width,
-                bottom=bottom_app_non_indiv,
+                bottom=bottom_appl_non_indiv,
                 label=(
                     sort_by_country
                     if sort_by_country not in labeled_countries
@@ -810,31 +808,31 @@ def plot_appl_inv_indiv_non_indiv(
                 ),
                 color=color_map[sort_by_country],
             )
-            bottom_app_non_indiv += app_non_indiv_pivot[sort_by_country]
+            bottom_appl_non_indiv += appl_non_indiv_pivot[sort_by_country]
             labeled_countries.add(sort_by_country)
-    for country in app_non_indiv_pivot.columns:
-        if country != sort_by_country and app_non_indiv_pivot[country].sum() > 0:
+    for country in appl_non_indiv_pivot.columns:
+        if country != sort_by_country and appl_non_indiv_pivot[country].sum() > 0:
             ax.bar(
                 index + bar_width,
-                app_non_indiv_pivot[country],
+                appl_non_indiv_pivot[country],
                 bar_width,
-                bottom=bottom_app_non_indiv,
+                bottom=bottom_appl_non_indiv,
                 label=country if country not in labeled_countries else None,
                 color=color_map[country],
             )
-            bottom_app_non_indiv += app_non_indiv_pivot[country]
+            bottom_appl_non_indiv += appl_non_indiv_pivot[country]
             labeled_countries.add(country)
 
     # Negative Right (Applicants - Individuals)
-    bottom_app_indiv = np.zeros(len(index))
-    if sort_by_country in app_indiv_pivot.columns:
-        country_sum = app_indiv_pivot[sort_by_country].sum()
+    bottom_appl_indiv = np.zeros(len(index))
+    if sort_by_country in appl_indiv_pivot.columns:
+        country_sum = appl_indiv_pivot[sort_by_country].sum()
         if country_sum > 0:
             ax.bar(
                 index + bar_width,
-                -app_indiv_pivot[sort_by_country],
+                -appl_indiv_pivot[sort_by_country],
                 bar_width,
-                bottom=bottom_app_indiv,
+                bottom=bottom_appl_indiv,
                 label=(
                     sort_by_country
                     if sort_by_country not in labeled_countries
@@ -842,19 +840,19 @@ def plot_appl_inv_indiv_non_indiv(
                 ),
                 color=color_map[sort_by_country],
             )
-            bottom_app_indiv -= app_indiv_pivot[sort_by_country]
+            bottom_appl_indiv -= appl_indiv_pivot[sort_by_country]
             labeled_countries.add(sort_by_country)
-    for country in app_indiv_pivot.columns:
-        if country != sort_by_country and app_indiv_pivot[country].sum() > 0:
+    for country in appl_indiv_pivot.columns:
+        if country != sort_by_country and appl_indiv_pivot[country].sum() > 0:
             ax.bar(
                 index + bar_width,
-                -app_indiv_pivot[country],
+                -appl_indiv_pivot[country],
                 bar_width,
-                bottom=bottom_app_indiv,
+                bottom=bottom_appl_indiv,
                 label=country if country not in labeled_countries else None,
                 color=color_map[country],
             )
-            bottom_app_indiv -= app_indiv_pivot[country]
+            bottom_appl_indiv -= appl_indiv_pivot[country]
             labeled_countries.add(country)
 
     # Customize the plot
@@ -867,15 +865,15 @@ def plot_appl_inv_indiv_non_indiv(
         fontsize=12,
     )
     tick_positions = index + bar_width / 2
-    tick_labels = [str(i + 1) for i in range(len(inv_indiv_pivot))]
+    tick_labels = [str(i + 1) for i in range(len(invt_indiv_pivot))]
     ax.set_xticks(tick_positions)
     ax.set_xticklabels(tick_labels, rotation=45, ha="right", fontsize=10)
     ax.legend(title="Country", bbox_to_anchor=(1.05, 1), loc="upper left", fontsize=10)
     ax.grid(axis="y", linestyle="--", alpha=0.7)
 
     # Set y-axis limits with 20% offset
-    max_positive = max(bottom_inv_indiv.max(), bottom_app_non_indiv.max())
-    max_negative = min(bottom_inv_non_indiv.min(), bottom_app_indiv.min())
+    max_positive = max(bottom_invt_indiv.max(), bottom_appl_non_indiv.max())
+    max_negative = min(bottom_invt_non_indiv.min(), bottom_appl_indiv.min())
     max_height = max(max_positive, abs(max_negative))
     y_offset = max_height * 0.2 if max_height > 0 else 2  # Default offset if no data
     ax.set_ylim(max_negative - y_offset, max_height + y_offset)
@@ -884,8 +882,7 @@ def plot_appl_inv_indiv_non_indiv(
 
     # Save plot
     filename = (
-        plot_output_dir
-        / f"inventor_applicant_indiv_non_indiv_bar_plot_sorted_by_{sort_by_country}.png"
+        plot_output_dir / f"inventor_applicant_indiv_non_indiv.png"
     )
     plt.savefig(filename, format="png", dpi=dpi, bbox_inches="tight")
     logger.info(f"Saved plot as {filename}")
@@ -893,8 +890,7 @@ def plot_appl_inv_indiv_non_indiv(
 
     # Add individual applicant ratio  to count ration plot
 
-
-def plot_individ_appl_inv_ratios(
+def plot_individ_appl_invt_ratios(
     df_applicant_ratios: pd.DataFrame,
     df_inventor_ratios: pd.DataFrame,
     df_combined_ratios: pd.DataFrame,
@@ -1002,8 +998,7 @@ def plot_individ_appl_inv_ratios(
 
             # Save plot
             filename = (
-                plot_output_dir
-                / f"indiv_applicant_ratio_plot_sorted_by_{sort_by_country}.png"
+                plot_output_dir / f"indiv_applicant_ratio.png"
             )
             plt.savefig(filename, format="png", dpi=dpi, bbox_inches="tight")
             logger.info(f"Saved plot as {filename}")
@@ -1077,8 +1072,7 @@ def plot_individ_appl_inv_ratios(
 
         # Save plot
         filename = (
-            plot_output_dir
-            / f"{ratio_type}_individ_applicant_ratio_stacked_bar_plot_sorted_by_{sort_by_country}.png"
+            plot_output_dir / f"{ratio_type}_individ_applicant_ratio.png"
         )
         plt.savefig(filename, format="png", dpi=dpi, bbox_inches="tight")
         logger.info(f"Saved plot as {filename}")
