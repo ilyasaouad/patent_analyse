@@ -132,7 +132,7 @@ def main():
                         value_df.to_csv(filepath, index=False)
                         logger.info(f"Saved value '{name}' to {filepath}")
 
-                # Create a list of dataframes
+                # Analyse inventor applicant counts
                 dataframes_list = [df_applicant_counts, df_inventor_counts, df_combined_counts]
                 dataframe_names = ["applicant_counts", "inventor_counts", "combined_counts"]
 
@@ -157,11 +157,42 @@ def main():
                         f.write(response)
                     logger.info(f"Saved analysis for '{df_name}' to {filepath}")
 
-                # Save summary
-                summary_filepath = txt_output_dir / "appl_invt_summary_analysis.txt"
+                # Save summary counts
+                summary_filepath = txt_output_dir / "summary_applicants_inventors_counts.txt"
                 with open(summary_filepath, "w", encoding="utf-8") as f:
                     f.write(analysis_result["summary"])
-                logger.info(f"Saved summary to {summary_filepath}")
+                logger.info(f"Saved summary counts to {summary_filepath}")
+   
+                # Analyse inventor applicant ratios
+                dataframes_list = [df_applicant_ratios, df_inventor_ratios, df_combined_ratios]
+                dataframe_names = ["applicant_ratios", "inventor_ratios", "combined_ratios"]
+
+                prompt_name = "applicants_inventors_ratio"
+                # Get analysis for all dataframes together
+                analysis_result = analyze_dataframe(
+                dataframes_list,
+                dataframe_names,
+                prompt_name,
+                Config.country_code
+                )
+
+                # Save individual analyses
+                txt_output_dir = output_dir / "analyse" / "applicants_inventors"
+                txt_output_dir.mkdir(parents=True, exist_ok=True)
+
+                for individual in analysis_result["individual_responses"]:
+                    df_name = individual["df_name"]
+                    response = individual["response"]
+                    filepath = txt_output_dir / f"{df_name}_analysis.txt"
+                    with open(filepath, "w", encoding="utf-8") as f:
+                        f.write(response)
+                    logger.info(f"Saved analysis for '{df_name}' to {filepath}")
+
+                # Save summary ratios
+                summary_filepath = txt_output_dir / "summary_applicants_inventors_ratios.txt"
+                with open(summary_filepath, "w", encoding="utf-8") as f:
+                    f.write(analysis_result["summary"])
+                logger.info(f"Saved summary ratios to {summary_filepath}")
 
                 # Define the directory where plots are saved
                 plots_dir = Path(Config.output_dir) / "plots" / "applicants_inventors"
