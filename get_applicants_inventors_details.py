@@ -879,13 +879,13 @@ def get_applicants_inventors_data(country_code: str, start_year: int, end_year: 
     if len(country_code) != 2 or not country_code.isalpha():
         raise ValueError("Country code must be a 2-letter string (e.g., 'NO').")
     if start_year < 1900 or start_year > 2025:
-        raise ValueError("Start year must be between 1900 and 2023.")
-    if end_year < start_year or end_year > 2023:
+        raise ValueError("Start year must be between 1900 and 2025.")  # Updated to 2025
+    if end_year < start_year or end_year > 2025:
         raise ValueError(
-            "End year must be greater than or equal to start year and <= 2023."
-        )
+            "End year must be >= start year and <= 2025."
+        )  # Updated to 2025
 
-    # List of DataFrame names, what will be calculate and returned to main
+    # List of DataFrame names to return
     df_names = [
         "df_unique_family_ids",
         "df_appl_invt",
@@ -909,29 +909,26 @@ def get_applicants_inventors_data(country_code: str, start_year: int, end_year: 
     df_unique_family_ids = get_family_ids(country_code, start_year, end_year)
     if df_unique_family_ids.empty:
         logger.warning("No family IDs found for the given criteria")
-        # Return tuple of all empty DataFrames, in here is len(df_names) to return
         return tuple(pd.DataFrame() for _ in df_names)
 
-    df_unique_family_ids = df_unique_family_ids[
-        0:15
-    ]  # for testing purposes ################## Testing ####################
+    # For testing purposes
+    df_unique_family_ids = df_unique_family_ids[0:15]
 
     # Convert to list
     family_ids_list = df_unique_family_ids["docdb_family_id"].tolist()
 
-    # Get applicant and inventor
+    # Get applicant and inventor data
     df_appl_invt = get_applicant_inventor(family_ids_list)
 
-    # Aggerate names and appln_ids into same rows
+    # Aggregate names and appln_ids into same rows
     df_appl_invt_agg = aggregate_applicants_inventors(df_appl_invt)
 
-    # Get counts for inventors applicants and combination
     # Calculate counts
     df_applicant_counts, df_inventor_counts, df_combined_counts = (
         calculate_applicants_inventors_counts(df_appl_invt)
     )
 
-    # Get ration of inventors only, applicant only, and in combinationcountry par application
+    # Calculate ratios
     df_applicant_ratios, df_inventor_ratios, df_combined_ratios = (
         calculate_applicants_inventors_ratios(
             df_applicant_counts, df_inventor_counts, df_combined_counts
@@ -946,14 +943,54 @@ def get_applicants_inventors_data(country_code: str, start_year: int, end_year: 
         df_appl_indiv_counts,
     ) = calculate_applicants_inventors_indiv_non_indiv(df_appl_invt)
 
-    # Get ratio of individual applicant on non-individual applicant.
+    # Generate plot for individual/non-individual counts
+    if all(
+        not df.empty
+        for df in [
+            df_invt_indiv_counts,
+            df_invt_non_indiv_counts,
+            df_appl_non_indiv_counts,
+            df_appl_indiv_counts,
+        ]
+    ):
+        plot_appl_invt_indiv_non_indiv(
+            df_invt_indiv_counts,
+            df_invt_non_indiv_counts,
+            df_appl_non_indiv_counts,
+            df_appl_indiv_counts,
+            sort_by_country=country_code,
+        )
+    else:
+        logger.warning(
+            "One or more individual/non-individual count DataFrames are empty"
+        )
+
+    # Calculate individual applicant ratio
     (df_indiv_applicant_ratio, num_families_with_indiv, ratio_only_indiv) = (
         individ_applicant(df_appl_indiv_counts, df_appl_non_indiv_counts)
     )
 
-    # Get female  inventors ration
+    # Calculate female inventor ratio
     df_female_inventor_ratio = female_invt_ratio(df_appl_invt)
 
+    # Return all DataFrames and metrics
+    return (
+        df_unique_family_ids,
+        df_appl_invt,
+        df_appl_invt_agg,
+        df_applicant_ratios,
+        df_inventor_ratios,
+        df_combined_ratios,
+        df_applicant_counts,
+        df_inventor_counts,
+        df_combined_counts,
+        df_appl_non_indiv_counts,
+        df_appl_indiv_counts,
+        df_indiv_applicant_ratio,
+        num_families_with_indiv,
+        ratio_only_indiv,
+        df_female_inventor_ratio,
+    )
     # ------------------- Ploting ---------------------
 
     # Plot ratios
@@ -1004,8 +1041,8 @@ def get_applicants_inventors_data(country_code: str, start_year: int, end_year: 
         df_applicant_counts,
         df_inventor_counts,
         df_combined_counts,
-        df_invt_indiv_counts,
-        df_invt_non_indiv_counts,
+        #df_invt_indiv_counts,   Is the same as invt_counts
+        #df_invt_non_indiv_counts,
         df_appl_non_indiv_counts,
         df_appl_indiv_counts,
         df_indiv_applicant_ratio,

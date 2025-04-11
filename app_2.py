@@ -90,8 +90,6 @@ def main():
                     df_applicant_counts,
                     df_inventor_counts,
                     df_combined_counts,
-                    df_invt_indiv_counts,
-                    df_invt_non_indiv_counts,
                     df_appl_non_indiv_counts,
                     df_appl_indiv_counts,
                     df_indiv_applicant_ratio,
@@ -111,8 +109,8 @@ def main():
                     "applicant_counts",
                     "inventor_counts",
                     "combined_counts",
-                    "invt_indiv_counts",
-                    "invt_non_indiv_counts",
+                    #"invt_indiv_counts",
+                    #"invt_non_indiv_counts",
                     "appl_non_indiv_counts",
                     "appl_indiv_counts",
                     "indiv_applicant_ratio",
@@ -175,8 +173,7 @@ def main():
                     "combined_ratio": ("Combined Ratios", df_combined_ratios),
                     "applicant_counts": ("Applicant Counts", df_applicant_counts),
                     "inventor_counts": ("Inventor Counts", df_inventor_counts),
-                    "invt_indiv_counts": ("Inventor Individual Counts", df_invt_indiv_counts),
-                    "invt_non_indiv_counts": ("Inventor Non-Individual Counts", df_invt_non_indiv_counts),
+                    "combined_counts": ("Combined Counts", df_combined_counts),
                     "appl_indiv_counts": ("Applicant Individual Counts", df_appl_indiv_counts),
                     "appl_non_indiv_counts": ("Applicant Non-Individual Counts",df_appl_non_indiv_counts),
                     "indiv_applicant_ratio": ("Individual Applicant Ratio", df_indiv_applicant_ratio),
@@ -186,26 +183,35 @@ def main():
                 # Dictionary mapping DataFrames to their plots (filenames without paths)
                 plot_mappings = {
                     "applicant_counts": [
-                        "applicant_counts.png",   
+                        "applicant_counts.png",
                     ],
                     "inventor_counts": [
-                        "inventor_counts.png",   
+                        "inventor_counts.png",
                     ],
                     "combined_counts": [
-                        "combined_counts.png",  
+                        "combined_counts.png",
                         "inventor_counts_side_by_side_applicant_counts.png",
                     ],
-                    "invt_indiv_counts": [
-                        "inventor_applicant_indiv_non_indiv.png",   
+                    "applicant_ratio": [
+                        "applicant_ratios.png",
                     ],
-                    "invt_non_indiv_counts": [
-                        "inventor_applicant_indiv_non_indiv.png",   
+                    "inventor_ratio": [
+                        "inventor_ratios.png",
+                    ],
+                    "combined_ratio": [
+                        "combined_ratios.png",
                     ],
                     "appl_indiv_counts": [
-                        "inventor_applicant_indiv_non_indiv.png",  
+                        "inventor_applicant_indiv_non_indiv.png",
                     ],
                     "appl_non_indiv_counts": [
-                        "inventor_applicant_indiv_non_indiv.png",   
+                        "inventor_applicant_indiv_non_indiv.png",
+                    ],
+                    "indiv_applicant_ratio": [
+                        "indiv_applicant_ratio.png",
+                    ],
+                    "female_inventor_ratio": [
+                        "female_inventor_ratio.png",
                     ],
                 }
 
@@ -220,12 +226,6 @@ def main():
                     "combined_counts": [
                         "combined_counts_analysis.txt",
                         "appl_invt_summary_analysis.txt"   
-                    ],
-                    "invt_indiv_counts": [
-                        "inventor_applicant_indiv_non_indiv.txt",  # Shared with other indiv/non-indiv
-                    ],
-                    "invt_non_indiv_counts": [
-                        "inventor_applicant_indiv_non_indiv.txt",  # Shared
                     ],
                     "appl_indiv_counts": [
                         "inventor_applicant_indiv_non_indiv.txt",  # Shared

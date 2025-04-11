@@ -890,6 +890,7 @@ def plot_appl_invt_indiv_non_indiv(
 
     # Add individual applicant ratio  to count ration plot
 
+
 def plot_individ_appl_invt_ratios(
     df_applicant_ratios: pd.DataFrame,
     df_inventor_ratios: pd.DataFrame,
@@ -900,23 +901,36 @@ def plot_individ_appl_invt_ratios(
     figsize: tuple = (12, 8),
     dpi: int = 300,
 ) -> None:
+    """
+    Plot individual applicant/inventor ratios as line or bar charts.
 
-    base_output_dir = Path(config.Config.output_dir)
+    Parameters:
+        df_applicant_ratios (pd.DataFrame): Applicant ratio data (columns: docdb_family_id, person_ctry_code, applicant_ratio)
+        df_inventor_ratios (pd.DataFrame): Inventor ratio data (columns: docdb_family_id, person_ctry_code, inventor_ratio)
+        df_combined_ratios (pd.DataFrame): Combined ratio data (columns: docdb_family_id, person_ctry_code, combined_ratio)
+        df_indiv_applicant_ratio (pd.DataFrame): Individual applicant ratio data (columns: docdb_family_id, person_ctry_code, indiv_applicant_ratio)
+        sort_by_country (str): Country code to sort by (default "NO")
+        output_dir (Path, optional): Directory to save plots
+        figsize (tuple): Figure size (default (12, 8))
+        dpi (int): Resolution of saved plots (default 300)
+    """
+    # Set output directory
+    base_output_dir = (
+        output_dir if output_dir is not None else Path(config.Config.output_dir)
+    )
     plot_output_dir = base_output_dir / "plots" / "applicants_inventors"
+    plot_output_dir.mkdir(parents=True, exist_ok=True)
 
     # List of DataFrames and their corresponding ratio types
     ratio_data = [
         (df_applicant_ratios, "applicant"),
         (df_inventor_ratios, "inventor"),
         (df_combined_ratios, "combined"),
-        (df_indiv_applicant_ratio, "indiv_applicant"),  # Added new DataFrame
+        (df_indiv_applicant_ratio, "indiv_applicant"),
     ]
 
     # Maximum number of countries to show in the legend
     MAX_COUNTRIES_IN_LEGEND = 10
-
-    # Ensure output directory exists
-    plot_output_dir.mkdir(parents=True, exist_ok=True)
 
     # Loop over each DataFrame and ratio type
     for df_final, ratio_type in ratio_data:
@@ -930,15 +944,11 @@ def plot_individ_appl_invt_ratios(
                 index="docdb_family_id",
                 columns="person_ctry_code",
                 values="indiv_applicant_ratio",
-            ).fillna(
-                0
-            )  # Fill NaN with 0 for plotting consistency
+            ).fillna(0)
 
             # Sort by specified country if present
             if sort_by_country in pivot_table.columns:
-                # Filter out families where specified country's ratio is NaN
                 pivot_table_filtered = pivot_table[pivot_table[sort_by_country].notna()]
-                # Sort by specified country's ratio
                 pivot_table_sorted = pivot_table_filtered.sort_values(
                     by=sort_by_country, ascending=False
                 )
@@ -957,7 +967,7 @@ def plot_individ_appl_invt_ratios(
                 sort_by_country not in top_countries
                 and sort_by_country in pivot_table_sorted.columns
             ):
-                top_countries = top_countries.append(pd.Index([sort_by_country]))
+                top_countries = list(top_countries) + [sort_by_country]
 
             # Reset index for plotting (1-based index)
             pivot_table_sorted = pivot_table_sorted.reset_index(drop=True)
@@ -970,8 +980,8 @@ def plot_individ_appl_invt_ratios(
                     pivot_table_sorted.index.astype(str),
                     pivot_table_sorted[country],
                     label=country,
-                    marker="o",  # Small markers to indicate data points
-                    alpha=0.7,  # Transparency to handle overlapping lines
+                    marker="o",
+                    alpha=0.7,
                 )
 
             # Customize the plot
@@ -982,98 +992,93 @@ def plot_individ_appl_invt_ratios(
                 f"Document Family Index (Sorted by '{sort_by_country}')", fontsize=12
             )
             ax.set_ylabel("Individual to Non-Individual Applicant Ratio", fontsize=12)
-            ax.set_xticks(
-                pivot_table_sorted.index[::5]
-            )  # Show every 5th tick to avoid clutter
+            ax.set_xticks(pivot_table_sorted.index[::5])
             ax.set_xticklabels(pivot_table_sorted.index[::5], fontsize=10, rotation=45)
             ax.legend(
                 title="Country", bbox_to_anchor=(1.05, 1), loc="upper left", fontsize=10
             )
-            ax.set_ylim(bottom=0)  # Start y-axis at 0
-            ax.grid(
-                True, linestyle="--", alpha=0.3
-            )  # Optional: light grid for readability
+            ax.set_ylim(bottom=0)
+            ax.grid(True, linestyle="--", alpha=0.3)
 
             plt.tight_layout()
 
             # Save plot
-            filename = (
-                plot_output_dir / f"indiv_applicant_ratio.png"
-            )
+            filename = plot_output_dir / "indiv_applicant_ratio.png"
             plt.savefig(filename, format="png", dpi=dpi, bbox_inches="tight")
             logger.info(f"Saved plot as {filename}")
             plt.close()
-
-    else:
-        # Existing plotting logic for other ratio types
-        pivot_table = df_final.pivot(
-            index="docdb_family_id",
-            columns="person_ctry_code",
-            values=f"{ratio_type}_ratio",
-        ).fillna(0)
-        percentage_table = pivot_table.div(pivot_table.sum(axis=1), axis=0) * 100
-
-        # Sort by mean contribution across families
-        country_order = percentage_table.mean().sort_values(ascending=False).index
-        percentage_table = percentage_table[country_order]
-
-        # Sort by the specified country if present
-        if sort_by_country in percentage_table.columns:
-            percentage_table = percentage_table.sort_values(
-                by=sort_by_country, ascending=False
-            )
-
-        # Aggregate less significant countries into 'Others'
-        if len(percentage_table.columns) > MAX_COUNTRIES_IN_LEGEND:
-            top_countries = percentage_table.columns[:MAX_COUNTRIES_IN_LEGEND]
-            others_countries = percentage_table.columns[MAX_COUNTRIES_IN_LEGEND:]
-            percentage_table["Others"] = percentage_table[others_countries].sum(axis=1)
-            percentage_table = percentage_table.drop(columns=others_countries)
         else:
-            top_countries = percentage_table.columns
+            # Pivot table for other ratio types
+            pivot_table = df_final.pivot(
+                index="docdb_family_id",
+                columns="person_ctry_code",
+                values=f"{ratio_type}_ratio",
+            ).fillna(0)
+            percentage_table = pivot_table.div(pivot_table.sum(axis=1), axis=0) * 100
 
-        # Reset index for plotting (1-based index)
-        percentage_table = percentage_table.reset_index(drop=True)
-        percentage_table.index += 1
+            # Sort by mean contribution across families
+            country_order = percentage_table.mean().sort_values(ascending=False).index
+            percentage_table = percentage_table[country_order]
 
-        # Plotting
-        fig, ax = plt.subplots(figsize=figsize)
-        bottom = pd.Series(0, index=percentage_table.index)
-        colors = plt.cm.tab20c.colors
+            # Sort by the specified country if present
+            if sort_by_country in percentage_table.columns:
+                percentage_table = percentage_table.sort_values(
+                    by=sort_by_country, ascending=False
+                )
 
-        for i, country in enumerate(percentage_table.columns):
-            ax.bar(
-                percentage_table.index.astype(str),
-                percentage_table[country],
-                bottom=bottom,
-                label=(
-                    country if country in top_countries or country == "Others" else None
-                ),
-                color=colors[i % len(colors)],
+            # Aggregate less significant countries into 'Others'
+            if len(percentage_table.columns) > MAX_COUNTRIES_IN_LEGEND:
+                top_countries = percentage_table.columns[:MAX_COUNTRIES_IN_LEGEND]
+                others_countries = percentage_table.columns[MAX_COUNTRIES_IN_LEGEND:]
+                percentage_table["Others"] = percentage_table[others_countries].sum(
+                    axis=1
+                )
+                percentage_table = percentage_table.drop(columns=others_countries)
+            else:
+                top_countries = percentage_table.columns
+
+            # Reset index for plotting (1-based index)
+            percentage_table = percentage_table.reset_index(drop=True)
+            percentage_table.index += 1
+
+            # Plotting
+            fig, ax = plt.subplots(figsize=figsize)
+            bottom = pd.Series(0, index=percentage_table.index)
+            colors = plt.cm.tab20c.colors
+
+            for i, country in enumerate(percentage_table.columns):
+                ax.bar(
+                    percentage_table.index.astype(str),
+                    percentage_table[country],
+                    bottom=bottom,
+                    label=(
+                        country
+                        if country in top_countries or country == "Others"
+                        else None
+                    ),
+                    color=colors[i % len(colors)],
+                )
+                bottom = bottom + percentage_table[country]
+
+            # Customize the plot
+            ax.set_title(
+                f"{ratio_type.capitalize()} Ratio Contribution by Country", fontsize=14
             )
-            bottom = bottom + percentage_table[country]
+            ax.set_xlabel(
+                f"Document Family Index (Sorted by '{sort_by_country}')", fontsize=12
+            )
+            ax.set_ylabel("Percentage Contribution (%)", fontsize=12)
+            ax.set_xticks(percentage_table.index[::5])
+            ax.set_xticklabels(percentage_table.index[::5], fontsize=10)
+            ax.legend(
+                title="Country", bbox_to_anchor=(1.05, 1), loc="upper left", fontsize=10
+            )
+            ax.set_ylim(0, 100)
 
-        # Customize the plot
-        ax.set_title(
-            f"{ratio_type.capitalize()} Ratio Contribution by Country", fontsize=14
-        )
-        ax.set_xlabel(
-            f"Document Family Index (Sorted by '{sort_by_country}')", fontsize=12
-        )
-        ax.set_ylabel("Percentage Contribution (%)", fontsize=12)
-        ax.set_xticks(percentage_table.index)
-        ax.set_xticklabels(percentage_table.index, fontsize=10)
-        ax.legend(
-            title="Country", bbox_to_anchor=(1.05, 1), loc="upper left", fontsize=10
-        )
-        ax.set_ylim(0, 120)
+            plt.tight_layout()
 
-        plt.tight_layout()
-
-        # Save plot
-        filename = (
-            plot_output_dir / f"{ratio_type}_individ_applicant_ratio.png"
-        )
-        plt.savefig(filename, format="png", dpi=dpi, bbox_inches="tight")
-        logger.info(f"Saved plot as {filename}")
-        plt.close()
+            # Save plot
+            filename = plot_output_dir / f"{ratio_type}_ratio.png"
+            plt.savefig(filename, format="png", dpi=dpi, bbox_inches="tight")
+            logger.info(f"Saved plot as {filename}")
+            plt.close()
